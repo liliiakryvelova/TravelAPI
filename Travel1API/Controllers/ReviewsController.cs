@@ -20,16 +20,16 @@ namespace Travel1API
       _db = db;
     }
 
-    // //Get api/Reviews
-    // [HttpGet]
-    // public async Task<ActionResult<IEnumerable<Review>>> Get()
-    // { 
-    //   return await _db.Reviews.ToListAsync();
-    // }
-
-    // GET: api/Reviews?
+    //Get api/Reviews
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Review>>> GetDestination(string destination, string orderby, string reviews)//"London"
+    public async Task<ActionResult<IEnumerable<Review>>> Get()
+    { 
+      return await _db.Reviews.ToListAsync();
+    }
+
+    // GET: api/Reviews?destination=London&groupby=rating
+    [HttpGet("destination")]
+    public async Task<ActionResult<IEnumerable<Review>>> GetDestination(string destination, string orderby)//"London"
     {
       var query = _db.Reviews.AsQueryable();
    
@@ -47,6 +47,32 @@ namespace Travel1API
 
       }
         return await query.ToListAsync();
+    }
+    // GET: api/Reviews?overall=rating
+    [HttpGet("overall")]
+    public async Task<ActionResult<IEnumerable<DestinationByRating>>> GetReviews(string overall)
+    {
+      if(overall != null)
+      {
+          var joinResult = from r in _db.Reviews
+              join d in _db.Destinations on r.DestinationId
+              equals d.DestinationId
+              orderby r.Rating
+              select new DestinationByRating(
+              d.DestinationName,
+              r.Rating); 
+              return await joinResult.ToListAsync();
+      }
+      else{
+        var unsortedResult = from r in _db.Reviews
+                    join d in _db.Destinations on r.DestinationId
+                    equals d.DestinationId
+                    select new DestinationByRating(
+                    d.DestinationName,
+                    r.Rating);
+          return await unsortedResult.ToListAsync();
+        }
+      
     }
 
     // GET: api/Reviews/5
